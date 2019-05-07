@@ -2,6 +2,11 @@
 import bscrypt from  'bcryptjs';
 import faker from 'faker';
 import fs from 'fs';
+import geoRan from 'geojson-random';
+
+// const vnBBox = {
+//     'Vietnam': (102.170435826, 8.59975962975, 109.33526981, 23.3520633001)
+// }
 function genkey(){
     let key = JSON.stringify(getRandomInt(2000, 9000));
     return new Promise((resolve)=>{
@@ -26,6 +31,15 @@ function getRandomInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+}
+
+
+function locationFactory(){
+    let a = geoRan.position();
+    return {
+        latitude: a[0],
+        longitude: a[1]
+    }
 }
 
 async function createCompany() {
@@ -64,9 +78,33 @@ async function createUser() {
     log(records, 'user.json')
 }
 
+function createCompanyLocation() {
+    let records = [];
+    let lookup = {};
+    let company_keys = JSON.parse(fs.readFileSync('company_lookup.json','utf8'));
+    let keys = Object.keys(company_keys);
+    let len = keys.length;
+    for (let i = 0; i < 50; i++){
+        records.push({
+            company_id: JSON.stringify(getRandomInt(0, len-1) ? getRandomInt(1, len-1) : 1 ),
+            address: faker.address.streetAddress() + ' ' + faker.address.streetName(),
+            city: faker.address.city(),
+            latitude: faker.address.latitude(),
+            longitude: faker.address.longitude(),
+            created_at: new Date(),
+            updated_at: new Date()
+        })
+    }
+    log(records, 'location.json')
+}
+
 
 async function run(){
     await createCompany();
     createUser();
+    createCompanyLocation()
 }
 run();
+
+// console.log()
+
